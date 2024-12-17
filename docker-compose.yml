@@ -15,6 +15,7 @@ services:
     container_name: dashboard_backend
     environment:
       - POSTGRES_URI="${POSTGRES_URI}"
+    entrypoint: ["sh", "-c", "poetry run alembic upgrade head"]
     restart: always
     labels:
       - traefik.enable=true
@@ -26,6 +27,7 @@ services:
       - traefik.http.routers.chronos2_web_api.tls.certresolver=le
     depends_on:
       - edge_server
+      - postgres
     networks:
       - traefik-public
     expose:
