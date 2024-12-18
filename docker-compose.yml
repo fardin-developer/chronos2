@@ -1,22 +1,43 @@
-version: "3"
 services:
-  server:
+  dashboard_backend:
     build:
-      context: ./server
-    ports:
-      - "80:80"
-    privileged: true
-    container_name: chronosBackend
-
-  frontend:
-    build:
-      context: ./client
-    container_name: frontend
-    ports:
-      - "5173:80"
+      context: ./chronos2/dashboard_backend
+    container_name: dashboard_backend
+    env_file:
+      - .env
+    entrypoint: ["sh", "-c", "poetry run alembic upgrade head"]
+    restart: always
     depends_on:
-      - server
+      - postgres
+    networks:
+      - traefik-public
+
+  dashboard_frontend:
+    build:
+      context: ./chronos2/dashboard_frontend
+    container_name: dashboard_frontend
+    depends_on:
+      - dashboard_backend
+    networks:
+      - traefik-public
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    env_file: ".env"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s  # Added missing timeout value
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - traefik-public
+
+volumes:
+  postgres_data:
+  traefik-public-certificates:
 
 networks:
-  default:
-    attachable: true
+  traefik-public:
