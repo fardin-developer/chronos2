@@ -1,9 +1,16 @@
 FROM python:3.11-slim
-SHELL ["/bin/bash", "--login", "-c"]
-COPY --from=ghcr.io/astral-sh/uv:0.4.0 /uv /bin/uv
-RUN mkdir -p /opt/data
-RUN mkdir -p /opt/app
+
+# Install dependencies (if needed)
+RUN pip install uvicorn fastapi
+
+# Set working directory
 WORKDIR /opt/app
+
+# Copy application code
 COPY . /opt/app/
-RUN uv sync
-CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5172"]
+
+# Expose the port FastAPI will run on
+EXPOSE 5172
+
+# Command to run FastAPI app
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5172"]
